@@ -1,0 +1,12 @@
+name: malmen
+rank: 1920
+n_blocks: 2
+lr: 1e-6
+meta_lr: 1e-5
+loc_coef: 4.0
+max_grad_norm: 1
+n_epochs: 100
+batch_size: 128
+token: ans
+cache_dir: cache
+load_checkpoint: False

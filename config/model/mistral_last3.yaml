@@ -1,0 +1,8 @@
+name_or_path: mistralai/Mistral-7B-v0.3
+class_name: AutoModelForCausalLM
+tok_name: AutoTokenizer
+layers: mistral_last3
+edit_modules:
+- model.layers.29.mlp.down_proj
+
+half: False

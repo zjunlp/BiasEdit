@@ -1,0 +1,8 @@
+name_or_path: openai-community/gpt2-medium
+class_name: GPT2LMHeadModel
+tok_name: GPT2TokenizerFast
+layers: gpt2m_12
+edit_modules:
+- transformer.h.0.mlp.c_proj
+- transformer.h.1.mlp.c_proj
+half: False

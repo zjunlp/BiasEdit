@@ -1,0 +1,8 @@
+name_or_path: google/gemma-2b
+class_name: AutoModelForCausalLM
+tok_name: AutoTokenizer
+layers: gemma_last1
+edit_modules:
+- model.layers.17.mlp.down_proj
+
+half: False

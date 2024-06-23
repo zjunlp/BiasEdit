@@ -1,0 +1,12 @@
+defaults:
+- _self_
+- data: stereoset
+- model: gpt2m
+- editor: malmen
+model_device: cuda:1
+editor_device: cuda:0
+eval_only: False
+early_stop_patience: 5
+early_stop_key: edit/loss
+use_wandb: False
+save_testckpt: False

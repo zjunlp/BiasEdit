@@ -1,0 +1,5 @@
+name: StereoSet
+n_edits: 128
+batch_size: 64
+train_path: /data2/xxu/malmen-bias/dataset/stereoset/train.json
+valid_path: /data2/xxu/malmen-bias/dataset/stereoset/dev.json

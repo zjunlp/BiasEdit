@@ -1,0 +1,7 @@
+name_or_path: meta-llama/Meta-Llama-3-8B
+class_name: AutoModelForCausalLM
+tok_name: AutoTokenizer
+layers: llama3_last1
+edit_modules:
+- model.layers.31.mlp.down_proj
+half: False
