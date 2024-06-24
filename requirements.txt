@@ -10,3 +10,4 @@ tqdm
 scikit-learn
 scipy
 numpy
+datasets
