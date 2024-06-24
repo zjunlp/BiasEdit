@@ -4,7 +4,7 @@
 <p align="center">
   <a href="">📃 Paper</a> 
   <a href="https://github.com/zjunlp/BiasEdit">💻 Code</a> 
-  <a href="">🌏 Web</a> 
+  <a href="https://zjunlp.github.io/project/BiasEdit">🌏 Web</a> 
 </p>
 
 
