@@ -94,6 +94,6 @@ If this code or paper was useful, please consider using the following citation:
 
 <h2 id="5">✨ Acknowledgements</h5>
 
-- Thanks for the original code from [MALMEN](https://github.com/ChenmienTan/malmen).
+- Thanks for the original code from [MALMEN](https://github.com/ChenmienTan/malmen) and [ROME](https://github.com/kmeng01/rome/blob/main/experiments/causal_trace.py).
 - Thanks for StereoSet and all the baselines from [bias-bench](https://github.com/McGill-NLP/bias-bench).
 - For more model editing methods, please try [EasyEdit](https://github.com/zjunlp/EasyEdit).
