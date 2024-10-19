@@ -87,7 +87,7 @@ If this code or paper was useful, please consider using the following citation:
 
     @article{xin24BiasEdit,
         title={BiasEdit: Debiasing Stereotyped Language Models via Model Editing},
-        author={Xin Xu, Wei Xu, Ningyu Zhang},
+        author={Xin Xu, Wei Xu, Ningyu Zhang, Julian McAuley},
         year={2024},
         url={https://github.com/zjunlp/BiasEdit}
     }
