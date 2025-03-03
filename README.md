@@ -14,11 +14,6 @@
 
 **BiasEdit** is an efficient *model editing* method to eliminate stereotyped bias from language models with small editor networks, including a *debiasing loss* to guide edits on partial parameters and a *remaining loss* to maintain the language modeling abilities during editing. Experimental results show BiasEdit' excellent performance on debiasing, modeling ability preservation, and robustness of gender reverse and semantic generality.
 
-## 🆕 News
-- [Feb 2024] We released the [paper]() and the refined code.
-- [Dec 2023] Our [idea](https://www.winlp.org/winlp-2023-workshop/accepted-papers/) was accepted by WiNLP 2023 in EMNLP 2023!
-- [Nov 2023] We released the code.
-
 ## 📌 Table of Contents
 
 - [🛠️ Setup](#1)
