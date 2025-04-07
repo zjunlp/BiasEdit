@@ -2,7 +2,7 @@
 
 
 <p align="center">
-  <a href="">📃 Paper</a> 
+  <a href="https://arxiv.org/abs/2503.08588">📃 Paper</a> 
   <a href="https://github.com/zjunlp/BiasEdit">💻 Code</a> 
   <a href="https://zjunlp.github.io/project/BiasEdit">🌏 Web</a> 
 </p>
