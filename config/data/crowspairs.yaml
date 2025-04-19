@@ -1,0 +1,5 @@
+name: Crows
+n_edits: 128
+batch_size: 64
+train_path: dataset/crows/train.csv
+valid_path: dataset/crows/gender.csv
