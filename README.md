@@ -49,26 +49,13 @@ With [StereoSet](https://aclanthology.org/2021.acl-long.416/), editor networks a
 - For the ablation study on the remaining loss, set `editor.loc_coef=0`.
 - Metrics can be found in the training log.
 
-For example, we use the following command to train the editor networks for Gemma-2B:
-
-
-```bash
- (biasedit) $ bash scripts/gemma_last2.sh
-```
-
 
 <h3 id="2.2">🚀 Debiasing with Editor Networks</h3>
 
 - Set `eval_only=True`
 - Set `data.valid_path` as the path of the test set
 - Metrics can be found at the end of the debiasing log, like "Test ------- XXX".
-- For testing the robustness of gender reverse, set `data.valid_path` as `data/stereoset/gender_test_reverse.json`.
-- For testing the semantic generality, set `data.valid_path` as `data/stereoset/xxx_test_syn.json`, where `xxx` is chosen from [gender, race, religion].
-
-For example,
-```bash
- (biasedit) $ bash scripts/gpt2m_last123_gender_reverse.sh
-```
+- Experimental scripts are in [scripts](./scripts).
 
 
 <h2 id="3">👀 Bias Tracing</h2>
