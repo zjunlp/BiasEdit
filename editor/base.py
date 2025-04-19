@@ -123,15 +123,17 @@ class BaseEditor:
                 pre_loc_dicts.append(pre_loc_dict)
 
                 self.edit_model(param_shifts, False)    # edit
+                
                 post_loc_output = self.model(**t)
                 post_loc_dict = self.loc_loss_fn(post_loc_output, t["labels"])
                 post_loc_dicts.append(post_loc_dict)
                 kl_loss = nn.KLDivLoss(reduction="batchmean")
-                loc_loss = kl_loss(input=post_loc_dict['loc_log_score'], target=pre_loc_dict['loc_score'])
+                if self.config.retain_loss:
+                    loc_loss = kl_loss(input=post_loc_dict['loc_log_score'], target=pre_loc_dict['loc_score'])
 
-                (self.config.editor.loc_coef * loc_loss).backward()
-                self.edit_model(param_shifts, True)     # recover
-                loc_losses += [loc_loss.item()]
+                    (self.config.editor.loc_coef * loc_loss).backward()
+                    self.edit_model(param_shifts, True)     # recover
+                    loc_losses += [loc_loss.item()]
                 
             self.update_hypernet(param_shifts)
 
@@ -149,9 +151,12 @@ class BaseEditor:
             info_dict["train_edit/ss_score"] = np.mean([ss['ss_score'] for ss in post_edit_dicts])
             info_dict["train_pre/lms"] = np.mean(prelmses)
             info_dict["train_edit/lms"] = np.mean(editlmses)
-            info_dict['train_edit/loc'] = np.mean(loc_losses)
             info_dict['train_edit/gen_loss'] = np.mean(gen_losses)
-            info_dict['train_edit/loss'] = info_dict['train_edit/gen_loss'] + self.config.editor.loc_coef * info_dict['train_edit/loc']
+            if self.config.retain_loss:
+                info_dict['train_edit/loc'] = np.mean(loc_losses)
+                info_dict['train_edit/loss'] = info_dict['train_edit/gen_loss'] + self.config.editor.loc_coef * info_dict['train_edit/loc']
+            else:
+                info_dict['train_edit/loss'] = info_dict['train_edit/gen_loss']
             info_dicts.append(info_dict)
             print(f"Train {cnt} -------- pre_ss: {info_dict['train_pre/ss_score']}, edit_ss: {info_dict['train_edit/ss_score']}, pre_lms: {info_dict['train_pre/lms']}, edit_lms: {info_dict['train_edit/lms']}, delta_lms: {info_dict['train_edit/lms']-info_dict['train_pre/lms']}")
         if self.config.use_wandb:
@@ -162,14 +167,17 @@ class BaseEditor:
     def valid(self, loader: DataLoader):
         info_dicts = []
         cnt = 0
+        hasunrelated = True
         if self.config.eval_only and self.config.save_testckpt:
             ckptdir = os.path.join("checkpoints", self.config.model.layers, self.config.data.valid_path.split('/')[-1].split('_')[0])
             f"checkpoints/{self.config.model.layers}"
             os.makedirs(ckptdir, exist_ok=True)
         for tuples in tqdm(loader, desc = "Valid", ncols = 100):
+            if "unrelated" not in tuples:
+                hasunrelated = False
             cnt += 1
             pre_edit_dicts = self.cache(tuples)
-            # print(torch.cuda.memory_allocated())
+            print(torch.cuda.memory_allocated())
             param_shifts = self.predict_param_shifts()
             self.edit_model(param_shifts, False)    # edit
             if self.config.eval_only and self.config.save_testckpt:
@@ -191,47 +199,59 @@ class BaseEditor:
                 gen_losses += [post_edit_dict['loss'].item()]
 
             self.edit_model(param_shifts, True) # recover
-            
-            loc_losses = []
-            pre_loc_dicts = []
-            post_loc_dicts = []
-            for t in tuples["unrelated"]:
-                with torch.no_grad():
-                    base_output = self.model(**t, return_dict=True)
-                pre_loc_dict = self.loc_loss_fn(base_output, t["labels"])
-                pre_loc_dicts.append(pre_loc_dict)
 
-                self.edit_model(param_shifts, False)    # edit
-                with torch.no_grad():
-                    post_loc_output = self.model(**t)
-                post_loc_dict = self.loc_loss_fn(post_loc_output, t["labels"])
-                post_loc_dicts.append(post_loc_dict)
-                kl_loss = nn.KLDivLoss(reduction="batchmean")
-                loc_loss = kl_loss(input=post_loc_dict['loc_log_score'], target=pre_loc_dict['loc_score'])
+            if "unrelated" in tuples:
+                loc_losses = []
+                pre_loc_dicts = []
+                post_loc_dicts = []
+                for t in tuples["unrelated"]:
+                    with torch.no_grad():
+                        base_output = self.model(**t, return_dict=True)
+                    pre_loc_dict = self.loc_loss_fn(base_output, t["labels"])
+                    pre_loc_dicts.append(pre_loc_dict)
 
-                self.edit_model(param_shifts, True)     # recover
-                loc_losses += [loc_loss.item()]
+                    self.edit_model(param_shifts, False)    # edit
+                    with torch.no_grad():
+                        post_loc_output = self.model(**t)
+                    post_loc_dict = self.loc_loss_fn(post_loc_output, t["labels"])
+                    post_loc_dicts.append(post_loc_dict)
+                    kl_loss = nn.KLDivLoss(reduction="batchmean")
+                    if self.config.retain_loss:
+                        loc_loss = kl_loss(input=post_loc_dict['loc_log_score'], target=pre_loc_dict['loc_score'])
 
-            #prelms
-            prelmses = []
-            for idx in range(len(pre_edit_dicts)):
-                prelmses.append(self.lms(pre_edit_dicts[idx], pre_loc_dicts[idx]))
-            #postlms
-            editlmses = []
-            for idx in range(len(post_edit_dicts)):
-                editlmses.append(self.lms(post_edit_dicts[idx], post_loc_dicts[idx]))
+                        self.edit_model(param_shifts, True)     # recover
+                        loc_losses += [loc_loss.item()]
+
+                #prelms
+                prelmses = []
+                for idx in range(len(pre_edit_dicts)):
+                    prelmses.append(self.lms(pre_edit_dicts[idx], pre_loc_dicts[idx]))
+                #postlms
+                editlmses = []
+                for idx in range(len(post_edit_dicts)):
+                    editlmses.append(self.lms(post_edit_dicts[idx], post_loc_dicts[idx]))
             
             info_dict = {}
             info_dict["val_pre/ss_score"] = np.mean([ss['ss_score'] for ss in pre_edit_dicts])
             info_dict["val_edit/ss_score"] = np.mean([ss['ss_score'] for ss in post_edit_dicts])
-            info_dict["val_pre/lms"] = np.mean(prelmses)
-            info_dict["val_edit/lms"] = np.mean(editlmses)
-            info_dict['val_edit/loc'] = np.mean(loc_losses)
+            if "unrelated" in tuples:
+                info_dict["val_pre/lms"] = np.mean(prelmses)
+                info_dict["val_edit/lms"] = np.mean(editlmses)
             info_dict['val_edit/gen_loss'] = np.mean(gen_losses)
-            info_dict['val_edit/loss'] = info_dict['val_edit/gen_loss'] + self.config.editor.loc_coef * info_dict['val_edit/loc']
+
+
+            if self.config.retain_loss and "unrelated" in tuples:
+                info_dict['val_edit/loc'] = np.mean(loc_losses)
+                info_dict['val_edit/loss'] = info_dict['val_edit/gen_loss'] + self.config.editor.loc_coef * info_dict['val_edit/loc']
+            else:
+                info_dict['val_edit/loss'] = info_dict['val_edit/gen_loss']
+            
             info_dicts.append(info_dict)
             if self.config.eval_only:
-                LOG.info(f"Test {cnt} -------- pre_ss: {info_dict['val_pre/ss_score']}, edit_ss: {info_dict['val_edit/ss_score']}, pre_lms: {info_dict['val_pre/lms']}, edit_lms: {info_dict['val_edit/lms']}, delta_lms: {info_dict['val_edit/lms']-info_dict['val_pre/lms']}")
+                if "unrelated" in tuples:
+                    LOG.info(f"Test {cnt} -------- pre_ss: {info_dict['val_pre/ss_score']}, edit_ss: {info_dict['val_edit/ss_score']}, pre_lms: {info_dict['val_pre/lms']}, edit_lms: {info_dict['val_edit/lms']}, delta_lms: {info_dict['val_edit/lms']-info_dict['val_pre/lms']}")
+                else:
+                    LOG.info(f"Test {cnt} -------- pre_ss: {info_dict['val_pre/ss_score']}, edit_ss: {info_dict['val_edit/ss_score']}")
             else:
                 LOG.info(f"Valid {cnt} -------- pre_ss: {info_dict['val_pre/ss_score']}, edit_ss: {info_dict['val_edit/ss_score']}, pre_lms: {info_dict['val_pre/lms']}, edit_lms: {info_dict['val_edit/lms']}, delta_lms: {info_dict['val_edit/lms']-info_dict['val_pre/lms']}")
             
@@ -239,22 +259,32 @@ class BaseEditor:
                 wandb.log(info_dict)
         all_pre_ss = sum([info_dict['val_pre/ss_score'] for info_dict in info_dicts]) / len(info_dicts)
         all_edit_ss = sum([info_dict['val_edit/ss_score'] for info_dict in info_dicts]) / len(info_dicts)
-        all_pre_lms = sum([info_dict['val_pre/lms'] for info_dict in info_dicts]) / len(info_dicts)
-        all_edit_lms = sum([info_dict['val_edit/lms'] for info_dict in info_dicts]) / len(info_dicts)
+        if hasunrelated:
+            all_pre_lms = sum([info_dict['val_pre/lms'] for info_dict in info_dicts]) / len(info_dicts)
+            all_edit_lms = sum([info_dict['val_edit/lms'] for info_dict in info_dicts]) / len(info_dicts)
         all_edit_loss = sum([info_dict['val_edit/loss'] for info_dict in info_dicts]) / len(info_dicts)
         if self.config.eval_only:
-            LOG.info(f"Overall results: \n Test -------- pre_ss: {all_pre_ss}, edit_ss: {all_edit_ss}, pre_lms: {all_pre_lms}, edit_lms: {all_edit_lms}, delta_lms: {all_edit_lms - all_pre_lms}")
+            if hasunrelated:
+                LOG.info(f"Overall results: \n Test -------- pre_ss: {all_pre_ss}, edit_ss: {all_edit_ss}, pre_lms: {all_pre_lms}, edit_lms: {all_edit_lms}, delta_lms: {all_edit_lms - all_pre_lms}")
+            else:
+                LOG.info(f"Overall results: \n Test -------- pre_ss: {all_pre_ss}, edit_ss: {all_edit_ss}")
         else:
             LOG.info(f"Overall results: \n Valid -------- pre_ss: {all_pre_ss}, edit_ss: {all_edit_ss}, pre_lms: {all_pre_lms}, edit_lms: {all_edit_lms}, delta_lms: {all_edit_lms - all_pre_lms}")
         
-        
-        return {
-            "pre/ss_score": all_pre_ss,
-            "edit/ss_score": all_edit_ss,
-            "pre/lms": all_pre_lms,
-            "edit/lms": all_edit_lms,
-            "edit/loss": all_edit_loss
-        }
+        if hasunrelated:
+            return {
+                "pre/ss_score": all_pre_ss,
+                "edit/ss_score": all_edit_ss,
+                "pre/lms": all_pre_lms,
+                "edit/lms": all_edit_lms,
+                "edit/loss": all_edit_loss
+            }
+        else:
+            return {
+                "pre/ss_score": all_pre_ss,
+                "edit/ss_score": all_edit_ss,
+                "edit/loss": all_edit_loss
+            }
     
     def cache(self, tuples): # cache (u, v_grad)
         cache_dir = os.path.join(self.config.editor.cache_dir, self.config.model.layers)
