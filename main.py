@@ -24,9 +24,9 @@ def main(config: DictConfig):
     
     data_module = importlib.import_module(f"data.{config.data.name.lower()}")
     data_class = getattr(data_module, f"{config.data.name}Dataset")
-    train_loader, valid_loader =  make_loader(config, data_class)
+    train_loader, valid_loader = make_loader(config, data_class)
     
-    model = make_model(config.model).to(config.model_device)
+    model =  make_model(config.model).to(config.model_device)
 
     editor_module = importlib.import_module(f"editor.{config.editor.name}")
     editor_class = getattr(editor_module, config.editor.name.upper())
