@@ -1,5 +1,7 @@
 from typing import Dict
 
+from data.base import BaseDataset
+
 import  json, string, random, logging, copy, random, torch
 from torch.utils.data import Dataset
 from tqdm import tqdm
@@ -108,11 +110,11 @@ class StereoSetDataset(Dataset):
                     anti_sentence = self._tokenizer.bos_token + b['context'].replace("BLANK", anti_word)
                     stereo_sentence = self._tokenizer.bos_token + b['context'].replace("BLANK", stereo_word)
                     unrelated_sentence = self._tokenizer.bos_token + b['context'].replace("BLANK", unrelated_word)
-                else: # llama, mixtral
+                else: # llama, mistral
                     anti_sentence = b['context'].replace("BLANK", anti_word)
                     stereo_sentence = b['context'].replace("BLANK", stereo_word)
                     unrelated_sentence = b['context'].replace("BLANK", unrelated_word)
-            b["input_sentence"] = {"anti": anti_sentence, "stereo": stereo_sentence, "unrelated": unrelated_sentence}   # with [MASK] for MLM, with eos for CLM
+            b["input_sentence"] = {"anti": anti_sentence, "stereo": stereo_sentence, "unrelated": unrelated_sentence}   
             # b["insertion_tokens"] = {"anti": anti_insertion_tokens, "stereo": stereo_insertion_tokens, "unrelated": unrelated_insertion_tokens}
             new_batch.append(b)
 
