@@ -45,7 +45,7 @@ With [StereoSet](https://aclanthology.org/2021.acl-long.416/), editor networks a
 
 - Formatted datasets with [train](./data/stereoset/train.json)/[dev](./data/stereoset/dev.json)/test (`gender_test.json`, `race_test.json`, `religion_test.json`) splits are in [data/stereoset](./data/stereoset). 
 - Configurations are in [config](./config). Partial parameters to be edited are presented in [editor](./config/editor). The configurations, like weights to be edited, are in [model](config/model).
-- Experimental scripts are in [scripts](./scripts). All hyper-parameters are in the scripts.
+- Experimental scripts are in [scripts](./scripts). All hyper-parameters are in the scripts. Since hyper-parameters have a great effect on hyper-network tuning, higly recommand conducting hyper-paramter tuning.
 - For the ablation study on the remaining loss, set `editor.loc_coef=0`.
 - Metrics can be found in the training log.
 
@@ -80,11 +80,11 @@ Enter [bias_tracing](./bias_tracing).
 
 If this code or paper was useful, please consider using the following citation:
 
-    @article{xin24BiasEdit,
+    @article{xin25BiasEdit,
         title={BiasEdit: Debiasing Stereotyped Language Models via Model Editing},
         author={Xin Xu, Wei Xu, Ningyu Zhang, Julian McAuley},
-        year={2024},
-        url={https://github.com/zjunlp/BiasEdit}
+        year={2025},
+        url={https://arxiv.org/pdf/2503.08588}
     }
 
 <h2 id="5">✨ Acknowledgements</h5>
