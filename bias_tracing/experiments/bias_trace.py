@@ -62,7 +62,7 @@ def main():
             "gpt-j-6b"
         ],
     )
-    aa("--bias_file", default="data/stereoset/domain/gender.json")
+    aa("--bias_file", default="data/domain/gender.json")
     aa("--subject_file", default="data/knowns.json")          # set(stereoset target + stereoset subject + jieyu)
     aa("--output_dir", default="results/{model_name}/causal_trace")
     aa("--noise_level", default="s3", type=parse_noise_rule)
