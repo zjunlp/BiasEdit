@@ -23,7 +23,7 @@ from transformers import (
     GPT2LMHeadModel
 )
 
-from dsets import KnownsDataset, StereoSetDataset
+from dsets import StereoSetDataset
 from rome.tok_dataset import (
     TokenizedDataset,
     dict_to_,
